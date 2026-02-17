@@ -52,7 +52,8 @@ cron.schedule("0 * * * *", async () => {
 					totalWiFi: { $sum: "$wifi_count" }, // Customize aggregations
 				},
 			},
-			{ $merge: { into: "groupDb" } }, // Upsert into groupDb [web:9]
+			// Upsert into the hourly summary collection
+			{ $merge: { into: "groupLogs" } },
 		];
 
 		const result = await logDb.aggregate(pipeline).toArray();
