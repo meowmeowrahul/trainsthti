@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import clsx from "clsx";
 import axios from "axios";
 import "../tailwind.css";
-const URL = "http://localhost:3000";
+import { AppContext, URL } from "../Context";
 function Login() {
 	const [isLoginScreen, setisLoginScreen] = useState(true);
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-
+	const { setIsLogged } = useContext(AppContext);
 	const handleRegister = () => {
 		const user = {
 			username: username,
@@ -36,12 +37,11 @@ function Login() {
 		};
 		axios
 			.post(`${URL}/user/login`, user, {
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 			})
 			.then((res) => {
 				alert("SUCESSFUL LOGIN");
+				setIsLogged(true);
 				console.log("res:" + res.data);
 			})
 			.catch((err) => {
@@ -94,7 +94,15 @@ function Login() {
 										onChange={(e) => {
 											setEmail(e.target.value);
 										}}
-										className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
+										className={clsx(
+											"block",
+											"w-full",
+											"px-3 py-1.5",
+											"rounded-md",
+											"bg-white dark:bg-white/5",
+											"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
+											"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
+										)}
 									/>
 								</div>
 							</div>
@@ -114,7 +122,15 @@ function Login() {
 									onChange={(e) => {
 										setUsername(e.target.value);
 									}}
-									className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
+									className={clsx(
+										"block",
+										"w-full",
+										"px-3 py-1.5",
+										"rounded-md",
+										"bg-white dark:bg-white/5",
+										"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
+										"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
+									)}
 								/>
 							</div>
 						</div>
@@ -144,7 +160,15 @@ function Login() {
 									onChange={(e) => {
 										setPassword(e.target.value);
 									}}
-									className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:placeholder:text-gray-500 dark:focus:outline-indigo-500"
+									className={clsx(
+										"block",
+										"w-full",
+										"px-3 py-1.5",
+										"rounded-md",
+										"bg-white dark:bg-white/5",
+										"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
+										"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
+									)}
 								/>
 							</div>
 						</div>
@@ -152,7 +176,16 @@ function Login() {
 						<div>
 							<button
 								type="submit"
-								className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500">
+								className={clsx(
+									"flex justify-center",
+									"w-full",
+									"px-3 py-1.5",
+									"rounded-md",
+									"bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 hover:bg-indigo-500",
+									"font-semibold text-sm/6 text-white",
+									"dark:shadow-none shadow-xs",
+									"dark:focus-visible:outline-indigo-500 focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2",
+								)}>
 								{isLoginScreen ? "Sign In" : "Register"}
 							</button>
 						</div>
