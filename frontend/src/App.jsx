@@ -1,25 +1,30 @@
+//Libraries
 import { useContext } from "react";
-import Login from "./Components/Login";
 import { AppContext } from "./Context";
+import { Routes, Route } from "react-router-dom";
+//CSS
 import "./tailwind.css";
-import Navbar from "./Components/Navbar";
+//Pages
+import Login from "./Components/Login";
 import Home from "./Components/Home";
 
 function App() {
 	const { isLogged } = useContext(AppContext);
 	return (
-		<>
+		<Routes>
 			{!isLogged ? (
-				<div className="h-full bg-white dark:bg-gray-900">
-					<Login />
-				</div>
+				<Route
+					path="/login"
+					element={
+						<div className="h-full bg-white dark:bg-gray-900">
+							<Login />
+						</div>
+					}
+				/>
 			) : (
-				<div>
-					<Navbar />
-					<Home />
-				</div>
+				<Route path="/" element={<Home />} />
 			)}
-		</>
+		</Routes>
 	);
 }
 

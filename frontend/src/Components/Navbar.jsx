@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../tailwind.css";
+import "./Navbar.css";
 import clsx from "clsx";
 
 const navItems = [
@@ -35,7 +36,7 @@ const Navbar = () => {
 	const toggleProfile = () => setProfileOpen((prev) => !prev);
 
 	return (
-		<nav className="bg-indigo-950/95 text-slate-50 sticky top-0 z-50 border-b border-indigo-800/70 backdrop-blur">
+		<nav className="navbar navbar--dark text-slate-100 sticky top-0 z-50 border-b border-slate-600/40 backdrop-blur-md">
 			<div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 				<div className="flex h-16 items-center justify-between gap-4">
 					{/* Logo + brand */}
@@ -45,7 +46,7 @@ const Navbar = () => {
 							src="../trainsthti-logo.jpg"
 							alt="logo"
 						/>
-						<span className="hidden sm:inline text-xl font-semibold tracking-tight text-slate-50">
+						<span className="hidden sm:inline text-xl font-semibold tracking-tight text-slate-100">
 							Trainsthti
 						</span>
 					</div>
@@ -59,12 +60,7 @@ const Navbar = () => {
 										href={item.href}
 										onClick={(e) => handleNavClick(e, item.href)}
 										className={clsx(
-											"after:absolute after:left-0 relative",
-											"after:h-0.5 after:w-0 hover:after:w-full",
-											"after:bg-indigo-400",
-											"hover:text-white text-slate-200",
-											"after:transition-all transition-colors",
-											"after:-bottom-1",
+											"nav-link hover:text-cyan-300 text-slate-300",
 										)}>
 										{item.label}
 									</a>
@@ -79,10 +75,10 @@ const Navbar = () => {
 						<form
 							onSubmit={handleSearch}
 							className={clsx(
-								"flex items-center gap-2",
+								"nav-search-form flex items-center gap-2",
 								"px-3 py-1.5",
-								"border border-indigo-700/80 rounded-full",
-								"bg-indigo-900/80",
+								"border border-slate-600/60 rounded-full",
+								"bg-slate-800/80",
 								"shadow-sm",
 							)}>
 							<input
@@ -94,7 +90,7 @@ const Navbar = () => {
 							/>
 							<button
 								type="submit"
-								className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white transition-colors">
+								className="nav-search-btn text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/90 hover:bg-cyan-400 text-slate-900 transition-transform">
 								Go
 							</button>
 						</form>
@@ -105,48 +101,47 @@ const Navbar = () => {
 								type="button"
 								onClick={toggleProfile}
 								className={clsx(
-									"flex items-center gap-2",
+									"nav-profile-btn flex items-center gap-2",
 									"px-2 py-1",
-									"border border-indigo-700/80 hover:border-indigo-400 rounded-full",
-									"bg-indigo-900/80",
-									"transition-colors",
+									"border border-slate-600/60 hover:border-cyan-400/60 rounded-full",
+									"bg-slate-800/80",
 								)}>
-								<div className="h-8 w-8 flex items-center justify-center rounded-full bg-indigo-500/90 text-sm font-semibold">
+								<div className="h-8 w-8 flex items-center justify-center rounded-full bg-cyan-500/80 text-slate-900 text-sm font-semibold">
 									R
 								</div>
 								<span className="hidden lg:inline text-sm text-slate-100">
 									Rahul
 								</span>
-								<span className="text-xs text-slate-300">▾</span>
+								<span className="text-xs text-slate-400">▾</span>
 							</button>
 
 							{profileOpen && (
 								<div
 									className={clsx(
-										"absolute right-0",
+										"nav-profile-dropdown absolute right-0",
 										"w-40",
 										"mt-2 py-1",
-										"border border-indigo-700/80 rounded-xl",
-										"bg-indigo-900/95",
+										"border border-slate-600/60 rounded-xl",
+										"bg-slate-800/95",
 										"text-sm",
-										"shadow-lg",
+										"shadow-xl",
 									)}>
 									<button
 										type="button"
 										onClick={() => console.log("Go to profile")}
-										className="w-full text-left px-3 py-2 hover:bg-indigo-800/90 text-slate-100">
+										className="w-full text-left px-3 py-2 hover:bg-slate-700/80 text-slate-100">
 										Profile
 									</button>
 									<button
 										type="button"
 										onClick={() => console.log("Open settings")}
-										className="w-full text-left px-3 py-2 hover:bg-indigo-800/90 text-slate-100">
+										className="w-full text-left px-3 py-2 hover:bg-slate-700/80 text-slate-100">
 										Settings
 									</button>
 									<button
 										type="button"
 										onClick={() => console.log("Logout")}
-										className="w-full text-left px-3 py-2 text-red-300 hover:bg-indigo-800/90">
+										className="w-full text-left px-3 py-2 text-red-400 hover:bg-slate-700/80">
 										Logout
 									</button>
 								</div>
@@ -160,14 +155,14 @@ const Navbar = () => {
 						<button
 							type="button"
 							onClick={() => console.log("Open mobile search")}
-							className="p-2 rounded-full hover:bg-indigo-900/80 text-slate-200"
+							className="p-2 rounded-full hover:bg-slate-700/80 text-slate-300"
 							aria-label="Search">
 							S
 						</button>
 						<button
 							type="button"
 							onClick={toggleMobile}
-							className="p-2 rounded-full hover:bg-indigo-900/80 text-slate-200"
+							className="p-2 rounded-full hover:bg-slate-700/80 text-slate-300"
 							aria-label="Toggle navigation menu">
 							{isMobileOpen ? "✕" : "☰"}
 						</button>
@@ -176,10 +171,10 @@ const Navbar = () => {
 
 				{/* Mobile nav + search + profile */}
 				{isMobileOpen && (
-					<div className="md:hidden border-t border-indigo-800/70 pt-3 pb-4 space-y-3">
+					<div className="nav-mobile-panel md:hidden border-t border-slate-600/40 pt-3 pb-4 space-y-3 overflow-hidden">
 						<form
 							onSubmit={handleSearch}
-							className="flex items-center rounded-full bg-indigo-900/80 border border-indigo-700/80 px-3 py-1.5 gap-2">
+							className="flex items-center rounded-full bg-slate-800/80 border border-slate-600/60 px-3 py-1.5 gap-2">
 							<input
 								type="text"
 								className="bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none flex-1"
@@ -189,7 +184,7 @@ const Navbar = () => {
 							/>
 							<button
 								type="submit"
-								className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white transition-colors">
+								className="nav-search-btn text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/90 hover:bg-cyan-400 text-slate-900 transition-transform">
 								Go
 							</button>
 						</form>
@@ -203,19 +198,19 @@ const Navbar = () => {
 											handleNavClick(e, item.href);
 											setIsMobileOpen(false);
 										}}
-										className="block px-2 py-2 rounded-lg text-slate-200 hover:bg-indigo-900/80 hover:text-white">
+										className="nav-mobile-link block px-2 py-2 rounded-lg text-slate-200 hover:text-white transition-colors">
 										{item.label}
 									</a>
 								</li>
 							))}
 						</ul>
 
-						<div className="border-t border-indigo-800/70 pt-3">
+						<div className="border-t border-slate-600/40 pt-3">
 							<button
 								type="button"
 								onClick={() => console.log("Go to profile")}
-								className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-indigo-900/80">
-								<div className="h-8 w-8 flex items-center justify-center rounded-full bg-indigo-500/90 text-sm font-semibold">
+								className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-slate-700/80">
+								<div className="h-8 w-8 flex items-center justify-center rounded-full bg-cyan-500/80 text-slate-900 text-sm font-semibold">
 									R
 								</div>
 								<div className="flex flex-col">

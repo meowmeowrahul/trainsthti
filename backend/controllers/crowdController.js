@@ -107,3 +107,31 @@ exports.getLatest = async (req, res) => {
 		res.status(500).json({ error: error.message });
 	}
 };
+
+exports.appendToGroup = async (timeToMatch) => {
+	try {
+		const logDb = app.locals.logDb;
+		const groupDb = app.locals.groupDb;
+
+		if (!logDb || !groupDb) {
+			return res.status(500).json({ error: "DB not connected" });
+		}
+
+		// Aggregate last hour: e.g., avg crowd_estimate by station/train (adapt fields)
+		const lastHour = await logDb.find({ timestamp: { $gte: timeToMatch } });
+
+		const result = await lastHour.toArray();
+		console.log(`Hourly summary stored: ${result.length} groups`);
+		await groupDb
+			.insertOne(lastHour)
+			.then(() => {
+				logDb.deleteMany({});
+				res.json({ status: "success" });
+			})
+			.catch((err) => {
+				res.status(404).json({ oneHR: `GroupDB insert error- ${err}` });
+			});
+	} catch (error) {
+		console.error("Aggregation failed:", error);
+	}
+};

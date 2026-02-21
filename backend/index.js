@@ -1,12 +1,15 @@
 const express = require("express");
 const cron = require("node-cron");
 const cors = require("cors");
+const axios = require("axios");
 const { connectDB } = require("./db");
 const crowdRouter = require("./routes/crowd");
 const userRouter = require("./routes/user");
+const crowdController = require("./controllers/crowdController");
 
 const app = express();
 app.use(express.json());
+const URL = "http://localhost";
 const PORT = 3000;
 
 async function startServer() {
@@ -34,33 +37,9 @@ async function startServer() {
 
 cron.schedule("0 * * * *", async () => {
 	// Every hour at minute 0 [web:39]
-	try {
-		const logDb = app.locals.logDb;
-		const groupDb = app.locals.groupDb;
-		const now = new Date();
-		const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+	const oneHour = new Date(Date.now() - 60 * 60 * 1000);
 
-		// Aggregate last hour: e.g., avg crowd_estimate by station/train (adapt fields)
-		const pipeline = [
-			{ $match: { timestamp: { $gte: hourAgo, $lt: now } } },
-			{
-				$group: {
-					_id: { station: "$station", train: "$train" }, // Group by location/train
-					avgCrowd: { $avg: "$crowd_estimate" },
-					maxCrowd: { $max: "$crowd_estimate" },
-					count: { $sum: 1 },
-					totalWiFi: { $sum: "$wifi_count" }, // Customize aggregations
-				},
-			},
-			// Upsert into the hourly summary collection
-			{ $merge: { into: "groupLogs" } },
-		];
-
-		const result = await logDb.aggregate(pipeline).toArray();
-		console.log(`Hourly summary stored: ${result.length} groups`);
-	} catch (error) {
-		console.error("Aggregation failed:", error);
-	}
+	crowdController.appendToGroup(oneHour);
 });
 
 startServer();
