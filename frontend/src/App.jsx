@@ -14,7 +14,7 @@ function App() {
 		<Routes>
 			{!isLogged ? (
 				<Route
-					path="/login"
+					path="/"
 					element={
 						<div className="h-full bg-white dark:bg-gray-900">
 							<Login />

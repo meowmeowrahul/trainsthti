@@ -108,10 +108,10 @@ exports.getLatest = async (req, res) => {
 	}
 };
 
-exports.appendToGroup = async (timeToMatch) => {
+exports.appendToGroup = async (req, res, timeToMatch) => {
 	try {
-		const logDb = app.locals.logDb;
-		const groupDb = app.locals.groupDb;
+		const logDb = req.app.locals.logDb;
+		const groupDb = req.app.locals.groupDb;
 
 		if (!logDb || !groupDb) {
 			return res.status(500).json({ error: "DB not connected" });
@@ -133,5 +133,109 @@ exports.appendToGroup = async (timeToMatch) => {
 			});
 	} catch (error) {
 		console.error("Aggregation failed:", error);
+	}
+};
+
+// controllers/crowdController.js
+
+exports.getQuarterHourAverages = async (req, res) => {
+	try {
+		const logDb = req.app.locals.logDb; // crowdLogs collection handle
+		if (!logDb) {
+			return res.status(500).json({ error: "DB not connected" });
+		}
+
+		const now = new Date();
+
+		// Start of current hour (e.g., 18:00:00 if time is 18:13)
+		const hourStart = new Date(now);
+		hourStart.setMinutes(0, 0, 0);
+
+		// End of current hour (next hour)
+		const hourEnd = new Date(hourStart.getTime() + 60 * 60 * 1000);
+
+		// For 6:13 pm, this will still calculate the 4 intervals inside 18:00–19:00:
+		// [18:00–18:15), [18:15–18:30), [18:30–18:45), [18:45–19:00)
+
+		const pipeline = [
+			{
+				$match: {
+					timestamp: {
+						$gte: hourStart,
+						$lt: hourEnd,
+					},
+				},
+			},
+			{
+				// Compute which 15-min chunk each doc belongs to: 0,1,2,3
+				$addFields: {
+					minute: { $minute: "$timestamp" },
+				},
+			},
+			{
+				$addFields: {
+					chunkIndex: {
+						$floor: { $divide: ["$minute", 15] }, // 0‑14 -> 0, 15‑29 -> 1, etc.
+					},
+				},
+			},
+			{
+				$group: {
+					_id: "$chunkIndex",
+					avgCrowd: { $avg: "$crowd_estimate" },
+					count: { $sum: 1 },
+					from: { $min: "$timestamp" },
+					to: { $max: "$timestamp" },
+				},
+			},
+			{
+				$sort: { _id: 1 },
+			},
+			{
+				// Map chunkIndex to human-readable interval labels
+				$project: {
+					_id: 0,
+					chunkIndex: "$_id",
+					avgCrowd: { $ifNull: ["$avgCrowd", 0] },
+					count: 1,
+					label: {
+						$switch: {
+							branches: [
+								{ case: { $eq: ["$_id", 0] }, then: "00-15" },
+								{ case: { $eq: ["$_id", 1] }, then: "15-30" },
+								{ case: { $eq: ["$_id", 2] }, then: "30-45" },
+								{ case: { $eq: ["$_id", 3] }, then: "45-60" },
+							],
+							default: "unknown",
+						},
+					},
+					from: 1,
+					to: 1,
+				},
+			},
+		];
+
+		const result = await logDb.aggregate(pipeline).toArray();
+
+		// append crowd_level to each quarter
+		const quarters = result.map((q) => {
+			const avg = q.avgCrowd || 0;
+			const crowd_level = avg < 50 ? "low" : avg < 150 ? "medium" : "high";
+
+			return {
+				...q,
+				crowd_level,
+			};
+		});
+
+		res.json({
+			status: "success",
+			hourStart,
+			hourEnd,
+			quarters,
+		});
+	} catch (err) {
+		console.error("getQuarterHourAverages error:", err);
+		res.status(500).json({ error: err.message });
 	}
 };

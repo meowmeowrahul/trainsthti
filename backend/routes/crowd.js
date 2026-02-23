@@ -11,4 +11,5 @@ router.get("/latest", crowdController.getLatest);
 // POST /api/crowd -> called by scan.sh to send raw counts
 router.post("/", crowdController.postCrowd);
 
+router.get("/past", crowdController.getQuarterHourAverages);
 module.exports = router;
