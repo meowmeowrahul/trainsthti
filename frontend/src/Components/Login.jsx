@@ -1,210 +1,310 @@
-import { useState, useContext } from "react";
+import { useContext, useMemo, useState } from "react";
 import clsx from "clsx";
 import axios from "axios";
-import "../tailwind.css";
-import { AppContext, URL } from "../Context";
+import { AppContext } from "../Context";
+import { URL } from "../config";
+
+const isValidEmail = (value) => /.+@.+\..+/.test(value);
+
 function Login() {
-	const [isLoginScreen, setisLoginScreen] = useState(true);
-	const [username, setUsername] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const { setIsLogged } = useContext(AppContext);
-	const handleRegister = () => {
-		const user = {
-			username: username,
-			email: email,
-			password: password,
-		};
-		axios
-			.post(`${URL}/user/register`, user, {
-				headers: {
-					"Content-Type": "application/json",
-				},
-			})
-			.then((res) => {
-				alert("SUCESSFULLY REGISTERED,CAN LOGIN");
-				console.log("res:" + res.data);
-				setisLoginScreen(true);
-			})
-			.catch((err) => {
-				(alert("SOME ERROR OCCURED"), console.log("err:" + err));
-			});
-	};
-	const handleLogin = () => {
-		const user = {
-			username: username,
-			password: password,
-		};
-		axios
-			.post(`${URL}/user/login`, user, {
-				headers: { "Content-Type": "application/json" },
-			})
-			.then((res) => {
-				alert("SUCESSFUL LOGIN");
-				setIsLogged(true);
-				console.log("res:" + res.data);
-			})
-			.catch((err) => {
-				(alert("SOME ERROR OCCURED"), console.log("err:" + err));
-			});
-	};
+  const [isLoginScreen, setIsLoginScreen] = useState(true);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setIsLogged } = useContext(AppContext);
 
-	return (
-		<div className="h-full">
-			<div className="flex min-h-screen flex-col justify-center px-6 py-12 lg:px-8">
-				<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-					<img
-						src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-						alt="Your Company"
-						className="mx-auto h-10 w-auto dark:hidden"
-					/>
-					<img
-						src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-						alt="Your Company"
-						className="mx-auto h-10 w-auto not-dark:hidden"
-					/>
-					<h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
-						Sign in to your account
-					</h2>
-				</div>
+  const content = useMemo(
+    () => ({
+      title: isLoginScreen ? "Sign in" : "Register",
+      description: isLoginScreen ? "Access dashboard." : "Create account.",
+    }),
+    [isLoginScreen],
+  );
 
-				<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							isLoginScreen ? handleLogin() : handleRegister();
-						}}
-						className="space-y-6">
-						{isLoginScreen ? (
-							<></>
-						) : (
-							<div>
-								<label
-									htmlFor="email"
-									className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
-									Email address
-								</label>
-								<div className="mt-2">
-									<input
-										id="email"
-										type="email"
-										name="email"
-										required
-										autoComplete="email"
-										onChange={(e) => {
-											setEmail(e.target.value);
-										}}
-										className={clsx(
-											"block",
-											"w-full",
-											"px-3 py-1.5",
-											"rounded-md",
-											"bg-white dark:bg-white/5",
-											"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
-											"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
-										)}
-									/>
-								</div>
-							</div>
-						)}
-						<div>
-							<label
-								htmlFor="username"
-								className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
-								Username
-							</label>
-							<div className="mt-2">
-								<input
-									id="username"
-									type="string"
-									name="username"
-									required
-									onChange={(e) => {
-										setUsername(e.target.value);
-									}}
-									className={clsx(
-										"block",
-										"w-full",
-										"px-3 py-1.5",
-										"rounded-md",
-										"bg-white dark:bg-white/5",
-										"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
-										"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
-									)}
-								/>
-							</div>
-						</div>
+  const validate = () => {
+    const nextErrors = {};
 
-						<div>
-							<div className="flex items-center justify-between">
-								<label
-									for="password"
-									className="block text-sm/6 font-medium text-gray-900 dark:text-gray-100">
-									Password
-								</label>
-								<div className="text-sm">
-									<a
-										href="#"
-										className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
-										Forgot password?
-									</a>
-								</div>
-							</div>
-							<div className="mt-2">
-								<input
-									id="password"
-									type="password"
-									name="password"
-									required
-									autoComplete="current-password"
-									onChange={(e) => {
-										setPassword(e.target.value);
-									}}
-									className={clsx(
-										"block",
-										"w-full",
-										"px-3 py-1.5",
-										"rounded-md",
-										"bg-white dark:bg-white/5",
-										"dark:placeholder:text-gray-500 dark:text-white placeholder:text-gray-400 sm:text-sm/6 text-base text-gray-900",
-										"-outline-offset-1 dark:focus:outline-indigo-500 dark:outline-white/10 focus:-outline-offset-2 focus:outline-2 focus:outline-indigo-600 outline-1 outline-gray-300",
-									)}
-								/>
-							</div>
-						</div>
+    if (!username.trim()) nextErrors.username = "Username is required.";
+    if (!password.trim()) nextErrors.password = "Password is required.";
+    if (!isLoginScreen) {
+      if (!email.trim()) nextErrors.email = "Email is required.";
+      else if (!isValidEmail(email)) nextErrors.email = "Enter a valid email.";
+      if (password.trim() && password.length < 6)
+        nextErrors.password = "Use at least 6 characters.";
+    }
 
-						<div>
-							<button
-								type="submit"
-								className={clsx(
-									"flex justify-center",
-									"w-full",
-									"px-3 py-1.5",
-									"rounded-md",
-									"bg-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 hover:bg-indigo-500",
-									"font-semibold text-sm/6 text-white",
-									"dark:shadow-none shadow-xs",
-									"dark:focus-visible:outline-indigo-500 focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2",
-								)}>
-								{isLoginScreen ? "Sign In" : "Register"}
-							</button>
-						</div>
-					</form>
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
-					<p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
-						Not a member?
-						<button
-							onClick={() => {
-								setisLoginScreen(!isLoginScreen);
-							}}
-							className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
-							{!isLoginScreen ? "Login" : "Register"}
-						</button>
-					</p>
-				</div>
-			</div>
-		</div>
-	);
+  const handleServerError = (error) => {
+    if (!error?.response) return "Network error. Try again.";
+    if (error.response.status === 401) return "Invalid username or password.";
+    if (error.response.status === 409) return "Account already exists.";
+    if (error.response.status === 400) return "Check form values.";
+    return error.response.data?.error || "Request failed.";
+  };
+
+  const resetFields = () => {
+    setUsername("");
+    setEmail("");
+    setPassword("");
+  };
+
+  const handleRegister = async () => {
+    setIsSubmitting(true);
+    setStatusMessage("");
+
+    try {
+      await axios.post(
+        `${URL}/user/register`,
+        { username, email, password },
+        { headers: { "Content-Type": "application/json" } },
+      );
+      setStatusMessage("Account created.");
+      setIsLoginScreen(true);
+      resetFields();
+      setErrors({});
+    } catch (error) {
+      setStatusMessage(handleServerError(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setIsSubmitting(true);
+    setStatusMessage("");
+
+    try {
+      await axios.post(
+        `${URL}/user/login`,
+        { username, password },
+        { headers: { "Content-Type": "application/json" } },
+      );
+      setStatusMessage("Login successful.");
+      setErrors({});
+      setIsLogged(true);
+    } catch (error) {
+      setStatusMessage(handleServerError(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen"
+      style={{ background: "var(--app-bg)", color: "var(--text-primary)" }}
+    >
+      <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[1fr_0.9fr]">
+        <section className="flex items-center px-6 py-12 sm:px-10 lg:px-12">
+          <div className="max-w-xl">
+            <div className="ui-card inline-flex items-center gap-3 rounded-lg px-4 py-2 text-sm font-medium">
+              <img
+                src="/trainsthti-logo.png"
+                alt="Trainsthti"
+                className="h-5 w-5"
+              />
+              Trainsthti
+            </div>
+
+            <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+              Live dashboard
+            </h1>
+            <p
+              className="mt-3 max-w-lg text-base leading-7"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Sign in to continue.
+            </p>
+          </div>
+        </section>
+
+        <section className="flex items-center justify-center px-6 py-12 sm:px-10 lg:px-12">
+          <Card>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                  {content.title}
+                </h2>
+              </div>
+            </div>
+
+            <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+              {content.description}
+            </p>
+
+            <div aria-live="polite" className="mt-5 min-h-6 text-sm">
+              {statusMessage}
+            </div>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!validate()) return;
+                isLoginScreen ? handleLogin() : handleRegister();
+              }}
+              className="mt-4 space-y-4"
+            >
+              {!isLoginScreen ? (
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    aria-invalid={Boolean(errors.email)}
+                    aria-describedby={errors.email ? "email-error" : undefined}
+                    className={inputClass(Boolean(errors.email))}
+                  />
+                  {errors.email ? (
+                    <p
+                      id="email-error"
+                      className="mt-2 text-sm"
+                      style={{ color: "var(--danger)" }}
+                    >
+                      {errors.email}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div>
+                <label
+                  htmlFor="username"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  aria-invalid={Boolean(errors.username)}
+                  aria-describedby={
+                    errors.username ? "username-error" : undefined
+                  }
+                  className={inputClass(Boolean(errors.username))}
+                />
+                {errors.username ? (
+                  <p
+                    id="username-error"
+                    className="mt-2 text-sm"
+                    style={{ color: "var(--danger)" }}
+                  >
+                    {errors.username}
+                  </p>
+                ) : null}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  autoComplete={
+                    isLoginScreen ? "current-password" : "new-password"
+                  }
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  aria-invalid={Boolean(errors.password)}
+                  aria-describedby={
+                    errors.password
+                      ? "password-error password-help"
+                      : "password-help"
+                  }
+                  className={inputClass(Boolean(errors.password))}
+                />
+                <p
+                  id="password-help"
+                  className="mt-2 text-sm"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Password recovery is not available yet.
+                </p>
+                {errors.password ? (
+                  <p
+                    id="password-error"
+                    className="mt-2 text-sm"
+                    style={{ color: "var(--danger)" }}
+                  >
+                    {errors.password}
+                  </p>
+                ) : null}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={clsx(
+                  "ui-button flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                )}
+              >
+                {isSubmitting
+                  ? "Working…"
+                  : isLoginScreen
+                    ? "Sign in"
+                    : "Create account"}
+              </button>
+            </form>
+
+            <p
+              className="mt-5 text-center text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {isLoginScreen ? "Need an account?" : "Already have an account?"}{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoginScreen((value) => !value);
+                  setErrors({});
+                  setStatusMessage("");
+                }}
+                className="font-semibold"
+                style={{ color: "var(--accent)" }}
+              >
+                {isLoginScreen ? "Register" : "Login"}
+              </button>
+            </p>
+          </Card>
+        </section>
+      </div>
+    </div>
+  );
 }
+
+const inputClass = (hasError) =>
+  clsx(
+    "w-full rounded-lg border px-4 py-3",
+    hasError ? "border-[var(--danger)]" : "border-[var(--border-subtle)]",
+    "bg-[var(--surface-strong)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+    "focus-visible:outline",
+  );
+
+const Card = ({ children }) => (
+  <div className="ui-card w-full max-w-md p-6 sm:p-8">{children}</div>
+);
 
 export default Login;

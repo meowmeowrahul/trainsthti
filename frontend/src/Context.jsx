@@ -1,71 +1,87 @@
-import { createContext, useEffect, useState } from "react";
-import App from "./App";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import axios from "axios";
-
-export const URL = "http://localhost:3000";
+import { URL } from "./config";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
 
-const ContextProvider = () => {
-  const [isLogged, setIsLogged] = useState(true);
-  const [latest, setLatest] = useState({});
-  const [past, setPast] = useState({});
-  async function getLatest() {
+const ContextProvider = ({ children }) => {
+  const [isLogged, setIsLogged] = useState(false);
+  const [latest, setLatest] = useState(null);
+  const [past, setPast] = useState([]);
+  const [lastSynced, setLastSynced] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchLatest = useCallback(async () => {
+    const res = await axios.get(`${URL}/api/crowd/latest`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    setLatest(res.data.latest ?? null);
+    return res.data.latest ?? null;
+  }, []);
+
+  const fetchPast = useCallback(async () => {
+    const res = await axios.get(`${URL}/api/crowd/past`);
+    setPast(Array.isArray(res.data.quarters) ? res.data.quarters : []);
+    return res.data.quarters ?? [];
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    setIsRefreshing(true);
+    setError("");
+
     try {
-      const res = await axios.get(`${URL}/api/crowd/latest`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setLatest(res.data.latest);
-      console.log("from API:", res.data.latest); // will show correct fresh data
+      await Promise.all([fetchLatest(), fetchPast()]);
+      setLastSynced(new Date());
     } catch (err) {
-      console.error("Latest:", err);
+      setError(
+        err?.response?.data?.error ||
+          err.message ||
+          "Failed to load crowd data.",
+      );
+    } finally {
+      setIsRefreshing(false);
     }
-  }
-
-  async function getPast() {
-    try {
-      const res = await axios.get(`${URL}/api/crowd/past`);
-      setPast(res.data.quarters);
-    } catch (error) {
-      console.error("Latest:", error);
-    }
-  }
+  }, [fetchLatest, fetchPast]);
 
   useEffect(() => {
+    refreshAll();
+
     const intervalId = setInterval(() => {
-      getLatest();
+      refreshAll();
     }, 5000);
 
     return () => {
-      // Cleanup function to clear the interval when the component unmounts
       clearInterval(intervalId);
     };
-  }, []);
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      getPast();
-    }, 5000);
+  }, [refreshAll]);
 
-    return () => {
-      // Cleanup function to clear the interval when the component unmounts
-      clearInterval(intervalId);
-    };
-  }, []);
+  const contextValue = useMemo(
+    () => ({
+      isLogged,
+      setIsLogged,
+      latest,
+      past,
+      lastSynced,
+      isRefreshing,
+      error,
+      refreshAll,
+    }),
+    [error, isLogged, isRefreshing, lastSynced, latest, past, refreshAll],
+  );
 
   return (
-    <AppContext.Provider
-      value={{
-        isLogged,
-        setIsLogged,
-        latest,
-        past,
-      }}
-    >
-      <App />
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 };
 

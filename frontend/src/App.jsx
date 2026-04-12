@@ -9,23 +9,12 @@ import Login from "./Components/Login";
 import Home from "./Components/Home";
 
 function App() {
-	const { isLogged } = useContext(AppContext);
-	return (
-		<Routes>
-			{!isLogged ? (
-				<Route
-					path="/"
-					element={
-						<div className="h-full bg-white dark:bg-gray-900">
-							<Login />
-						</div>
-					}
-				/>
-			) : (
-				<Route path="/" element={<Home />} />
-			)}
-		</Routes>
-	);
+  const { isLogged } = useContext(AppContext);
+  return (
+    <Routes>
+      <Route path="/" element={isLogged ? <Home /> : <Login />} />
+    </Routes>
+  );
 }
 
 export default App;

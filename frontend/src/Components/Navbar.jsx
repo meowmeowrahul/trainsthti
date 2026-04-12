@@ -1,47 +1,76 @@
 import { useState } from "react";
 
 const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Github", href: "https://github.com/meowmeowrahul/trainsthti" },
+  { label: "Overview", href: "#overview" },
+  { label: "Live metrics", href: "#live" },
+  { label: "History", href: "#history" },
 ];
 
-const Navbar = () => {
+const Navbar = ({ onRefresh, lastSynced, isRefreshing }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const handleNavClick = (e, href) => {
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      const target = document.querySelector(href);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
+  const handleNavClick = (event, href) => {
+    if (!href.startsWith("#")) return;
+
+    event.preventDefault();
+    const target = document.querySelector(href);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded bg-black flex items-center justify-center">
-              <span className="text-white text-xs font-bold">
-                <img src="/trainsthti-logo.png" alt="Logo" />
-              </span>
-            </div>
-            <span className="text-sm font-semibold tracking-tight text-gray-900">
-              Trainsthti
-            </span>
-          </div>
+  const syncText = lastSynced
+    ? `Synced ${new Date(lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : "Waiting for sync";
 
-          <div className="hidden md:flex items-center gap-8">
-            <ul className="flex gap-6 text-sm font-medium text-gray-500">
+  return (
+    <nav
+      className="sticky top-0 z-50 border-b"
+      style={{
+        borderColor: "var(--border-subtle)",
+        background: "var(--surface-strong)",
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-16 items-center justify-between gap-4 py-3">
+          <a
+            href="#overview"
+            className="flex items-center gap-3"
+            onClick={(event) => handleNavClick(event, "#overview")}
+          >
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-lg border"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--surface)",
+              }}
+            >
+              <img
+                src="/trainsthti-logo.png"
+                alt="Trainsthti logo"
+                className="h-7 w-7"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Trainsthti</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Live dashboard
+              </p>
+            </div>
+          </a>
+
+          <div className="hidden items-center gap-3 md:flex">
+            <ul
+              className="ui-nav flex items-center gap-2 rounded-lg p-1 text-sm"
+              style={{
+                color: "var(--text-muted)",
+              }}
+            >
               {navItems.map((item) => (
                 <li key={item.label}>
                   <a
                     href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
-                    className="hover:text-black transition-colors"
+                    onClick={(event) => handleNavClick(event, item.href)}
+                    className="ui-navitem inline-flex items-center focus-visible:outline"
+                    style={{ opacity: 0.9 }}
                   >
                     {item.label}
                   </a>
@@ -49,42 +78,74 @@ const Navbar = () => {
               ))}
             </ul>
 
-            <button className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-700 hover:bg-gray-200 transition-colors">
-              R
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4 md:hidden">
             <button
               type="button"
-              onClick={() => setIsMobileOpen((p) => !p)}
-              className="text-gray-500 hover:text-black focus:outline-none"
+              onClick={onRefresh}
+              className="ui-button rounded-lg px-4 py-2 text-sm font-medium"
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? "Refreshing" : "Refresh"}
+            </button>
+
+            <div
+              className="ui-badge ui-card px-3 py-2 text-xs"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {syncText}
+            </div>
+          </div>
+
+          <div className="flex items-center md:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen((value) => !value)}
+              aria-expanded={isMobileOpen}
+              aria-controls="mobile-nav"
+              className="ui-button inline-flex h-10 w-10 items-center justify-center rounded-lg"
             >
               {isMobileOpen ? "✕" : "☰"}
             </button>
           </div>
         </div>
 
-        {isMobileOpen && (
-          <div className="md:hidden border-t border-gray-100 py-4">
-            <ul className="space-y-1 text-sm font-medium text-gray-600">
+        {isMobileOpen ? (
+          <div
+            id="mobile-nav"
+            className="border-t py-3 md:hidden"
+            style={{ borderColor: "var(--border-subtle)" }}
+          >
+            <ul
+              className="space-y-1 text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
               {navItems.map((item) => (
                 <li key={item.label}>
                   <a
                     href={item.href}
-                    onClick={(e) => {
-                      handleNavClick(e, item.href);
+                    onClick={(event) => {
+                      handleNavClick(event, item.href);
                       setIsMobileOpen(false);
                     }}
-                    className="block rounded-md px-3 py-2 hover:bg-gray-50 hover:text-black"
+                    className="block rounded-lg px-4 py-3 hover:opacity-100 focus-visible:outline"
+                    style={{ opacity: 0.9 }}
                   >
                     {item.label}
                   </a>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  className="ui-button mt-2 block w-full rounded-lg px-4 py-3 text-left"
+                  disabled={isRefreshing}
+                >
+                  {isRefreshing ? "Refreshing" : "Refresh"}
+                </button>
+              </li>
             </ul>
           </div>
-        )}
+        ) : null}
       </div>
     </nav>
   );
